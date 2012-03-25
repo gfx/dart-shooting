@@ -15,6 +15,10 @@ And then open shooting.html with your browser.
 
 This will work on modern browsers including smartphones'.
 
+#SEE ALSO
+
+- http://nmi.jp/archives/386
+
 #AUTHOR
 
 Original JavaScript version is written by Kihira, Takuo (tkihira).
