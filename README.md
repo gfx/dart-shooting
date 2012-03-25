@@ -4,7 +4,7 @@ Dart Shooting
 
 #RUN
 
-This software requires images, which the distribution doesn't include.
+This software requires image files, which the distribution doesn't include.
 
 To run this game, please download shooting.zip from
 http://nmi.jp/archives/386, and extract its contents
