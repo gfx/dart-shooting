@@ -3146,6 +3146,9 @@ Status.prototype.draw = function() {
       this.state = "gameover";
     }
   }
+  else {
+    return;
+  }
   this.ctx.drawImage(image, this.x - (16), this.y - (16));
 }
 Status.prototype.drawSpace = function(px, py) {
