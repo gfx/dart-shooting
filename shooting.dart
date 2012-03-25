@@ -109,6 +109,11 @@ class Status {
         state = "gameover";
       }
     }
+    else {
+      return;
+    }
+
+    assert(image != null);
     ctx.drawImage(image,
       x - (Config.cellWidth  >> 1),
       y - (Config.cellHeight >> 1));
