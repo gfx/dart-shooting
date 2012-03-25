@@ -3029,6 +3029,11 @@ function MovingObject(x, y, dx, dy) {
   this.dx = dx;
   this.dy = dy;
 }
+MovingObject.prototype.update = function() {
+  this.x = this.x + this.dx;
+  this.y = this.y + this.dy;
+  return !(this.x <= (0) || this.x >= (320) || this.y <= (0) || this.y >= (320));
+}
 // ********** Code for Bullet **************
 $inherits(Bullet, MovingObject);
 function Bullet(x, y, dx, dy) {
@@ -3131,15 +3136,17 @@ Status.prototype.drawBackground = function() {
 }
 Status.prototype.draw = function() {
   this.drawBackground();
+  var image;
   if (this.state == "gaming") {
-    this.ctx.drawImage(this.images.$index("my"), this.x - (16), this.y - (16));
+    image = this.images.$index("my");
   }
   else if (this.state == "dying") {
-    this.ctx.drawImage(this.images.$index(("bomb" + this.dying)), this.x - (16), this.y - (16));
+    image = this.images.$index(("bomb" + this.dying));
     if (++this.dying > (10)) {
       this.state = "gameover";
     }
   }
+  this.ctx.drawImage(image, this.x - (16), this.y - (16));
 }
 Status.prototype.drawSpace = function(px, py) {
   var image = this.images.$index(("space" + (random() * (10) + (1)).toInt()));
@@ -3188,20 +3195,14 @@ Status.prototype.tick = function() {
     this.bullets.$setindex(("" + this.frameCount + "d"), this.createBullet((-1), (1)));
     this.bullets.$setindex(("" + this.frameCount + "e"), this.createBullet((1), (1)));
   }
-  if (this.rockCount < ((5) + this.frameCount / (500))) {
+  if (this.rocks.get$length() < ((5) + this.frameCount / (500))) {
     this.rocks.$setindex(("" + this.frameCount + "r"), this.createRock());
-    ++this.rockCount;
   }
   var $$list = this.bullets.getKeys();
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var key = $$i.next();
     var bullet = this.bullets.$index(key);
-    bullet.x = bullet.x + bullet.dx;
-    bullet.y = bullet.y + bullet.dy;
-    if (bullet.x < (0) || bullet.x > (320) || bullet.y < (0) || bullet.y > (320)) {
-      this.bullets.remove(key);
-    }
-    else {
+    if (bullet.update()) {
       this.ctx.drawImage(this.images.$index("bullet"), bullet.x - (2), bullet.y - (2));
       var $list0 = this.rocks.getValues();
       for (var $i0 = $list0.iterator(); $i0.hasNext(); ) {
@@ -3223,24 +3224,20 @@ Status.prototype.tick = function() {
         }
       }
     }
+    else {
+      this.bullets.remove(key);
+    }
   }
   var $$list = this.rocks.getKeys();
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var key = $$i.next();
     var rock = this.rocks.$index(key);
-    rock.x = rock.x + rock.dx;
-    rock.y = rock.y + rock.dy;
-    if (rock.x < (0) || rock.x > (320) || rock.y < (0) || rock.y > (320)) {
-      this.rocks.remove(key);
-      --this.rockCount;
-    }
-    else {
+    if (rock.update()) {
       this.ctx.drawImage(this.images.$index(rock.state), rock.x - (16), rock.y - (16));
       if (rock.hp == (0)) {
         var next = Math.parseInt(rock.state.substring((4))) + (1);
         if (next > (10)) {
           this.rocks.remove(key);
-          --this.rockCount;
         }
         else {
           rock.state = ("bomb" + next);
@@ -3253,6 +3250,9 @@ Status.prototype.tick = function() {
           this.dying = (1);
         }
       }
+    }
+    else {
+      this.rocks.remove(key);
     }
   }
 }
@@ -3280,7 +3280,6 @@ Status.prototype.initialize = function() {
   this.x = (80);
   this.y = (240.0).toInt();
   this.frameCount = (0);
-  this.rockCount = (0);
   this.score = (0);
   this.bullets = new HashMapImplementation_dart_core_String$Bullet();
   this.rocks = new HashMapImplementation_dart_core_String$Rock();

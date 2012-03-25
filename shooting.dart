@@ -25,7 +25,7 @@ class Config {
   static final num bulletHeight = 4;
   static final num bulletSpeed  = 20;
   static final num reloadCount  = 3;
-  
+
   static final num width  = cols * cellWidth;
   static final num height = rows * cellHeight;
 }
@@ -35,8 +35,18 @@ class MovingObject {
   num y;
   num dx;
   num dy;
-  
+
   MovingObject(this.x, this.y, this.dx, this.dy);
+
+  // return true while the object lives
+  bool update() {
+    x += dx;
+    y += dy;
+
+    return !(   x <= 0 || x >= Config.width
+             || y <= 0 || y >= Config.height);
+
+  }
 }
 
 class Bullet extends MovingObject {
@@ -47,7 +57,7 @@ class Rock extends MovingObject {
   num hp;
   num score;
   String state;
-  
+
   Rock(x, y, dx, dy, this.hp, this.score, this.state) : super(x, y, dx, dy);
 }
 
@@ -55,29 +65,27 @@ class Status {
   List<String> imageName;
   Map<String, Element> images;
 
-  
   String state = "loading";
-  
+
   num lastX;
   num lastY;
   num x;
   num y;
   num frameCount;
   num currentTop;
-  
+
   num dying;
-  
+
   CanvasRenderingContext2D ctx;
   CanvasRenderingContext2D bgCtx;
-  
+
   Map<String, Bullet> bullets;
-  
+
   Map<String, Rock> rocks;
-  num rockCount;
-  
+
   num score;
   Element scoreElement;
-  
+
   void drawBackground() {
     num bottom = Config.height + Config.cellHeight - currentTop;
     if(bottom > 0) {
@@ -88,26 +96,24 @@ class Status {
       ctx.drawImage(bgCtx.canvas, 0, bottom);
     }
   }
-  
+
   void draw() {
     drawBackground();
- 
+    Element image;
     if(state == "gaming") {
-      ctx.drawImage(images["my"],
-        x - (Config.cellWidth  >> 1),
-        y - (Config.cellHeight >> 1));
+      image = images["my"];
     }
     else if(state == "dying") {
-      ctx.drawImage(images["bomb${dying}"],
-        x - (Config.cellWidth  >> 1),
-        y - (Config.cellHeight >> 1));
-
+      image = images["bomb${dying}"];
       if(++dying > 10) {
         state = "gameover";
       }
     }
+    ctx.drawImage(image,
+      x - (Config.cellWidth  >> 1),
+      y - (Config.cellHeight >> 1));
   }
-  
+
   void drawSpace(num px, num py) {
     Element image = images["space${(random() * 10 + 1).toInt()}"];
     assert(image != null);
@@ -115,27 +121,27 @@ class Status {
       px * Config.cellWidth,
       py * Config.cellHeight);
   }
-  
+
   Bullet createBullet(num dx, num dy) {
     return new Bullet(
       x, y,
       dx * Config.bulletSpeed,
       dy * Config.bulletSpeed);
   }
-  
+
   Rock createRock() {
     num level = (frameCount / 500).toInt();
- 
+
     num px  = x + random() * 100 - 50;
     num py  = y + random() * 100 - 50;
     num fx = random() * Config.width;
     num fy = (level >= 4) ? (random() * 2) * Config.height : 0;
-    
+
     num r  = Math.atan2(py - fy, px - fx);
     num d  = Math.max(random() * (5.5 + level) + 1.5, 10);
 
     num hp = (random() * random() * ((5 + level / 4).toInt())).toInt() | 1;
- 
+
     return new Rock(
       fx,
       fy,
@@ -146,14 +152,14 @@ class Status {
       "rock${(random() * 3 + 1).toInt()}"
     );
   }
-  
+
   void tick() {
     window.setTimeout(() => tick(), (1000 / 30).toInt());
-    
+
     if(state == "loading") {
       return;
     }
-    
+
     ++frameCount;
     if(--currentTop == 0) {
       currentTop = Config.height + Config.cellHeight;
@@ -164,9 +170,9 @@ class Status {
         drawSpace(px, line);
       }
     }
-    
+
     draw();
-    
+
     if(state == "gaming" && (frameCount % Config.reloadCount) == 0) {
       bullets["${frameCount}a"] = createBullet(-1, -1);
       bullets["${frameCount}b"] = createBullet( 0, -1);
@@ -174,26 +180,19 @@ class Status {
       bullets["${frameCount}d"] = createBullet(-1,  1);
       bullets["${frameCount}e"] = createBullet( 1,  1);
     }
-    
-    if(rockCount < (5 + frameCount / 500)) {
+
+    if(rocks.length < (5 + frameCount / 500)) {
       rocks["${frameCount}r"] = createRock();
-      ++rockCount;
     }
-    
+
     for(String key in bullets.getKeys()) {
       Bullet bullet = bullets[key];
-      bullet.x += bullet.dx;
-      bullet.y += bullet.dy;
-      
-      if(   bullet.x < 0 || bullet.x > Config.width
-         || bullet.y < 0 || bullet.y > Config.height) {
-        bullets.remove(key);
-      }
-      else {
+
+      if(bullet.update()) {
         ctx.drawImage(images["bullet"],
           bullet.x - (Config.bulletWidth  >> 1),
           bullet.y - (Config.bulletHeight >> 1));
-        
+
         for(Rock rock in rocks.getValues()) {
           if(    (bullet.x - rock.x).abs() < (Config.cellWidth >> 1)
               && (bullet.y - rock.y).abs() < (Config.cellHeight >> 1)) {
@@ -201,7 +200,7 @@ class Status {
               bullets.remove(key);
               if(--rock.hp == 0) {
                 score = Math.min(score + rock.score, 999999999);
-                
+
                 String fillz = "000000000".substring(
                   0, 9 - score.toString().length
                 );
@@ -216,25 +215,22 @@ class Status {
           }
         }
       }
-    } // endj for each bullets
+      else {
+        bullets.remove(key);
+      }
+    } // end for each bullets
+
     for(String key in rocks.getKeys()) {
       Rock rock = rocks[key];
-      rock.x += rock.dx;
-      rock.y += rock.dy;
-      if(    rock.x < 0 || rock.x > Config.width
-          || rock.y < 0 || rock.y > Config.height) {
-        rocks.remove(key);
-        --rockCount;
-      }
-      else {
+      if(rock.update()) {
         ctx.drawImage(images[rock.state],
           rock.x - (Config.cellWidth >> 1),
           rock.y - (Config.cellHeight >> 1));
+
         if(rock.hp == 0) {
           num next = Math.parseInt(rock.state.substring(4)) + 1;
           if(next > 10) {
             rocks.remove(key);
-            --rockCount;
           }
           else {
             rock.state = "bomb$next";
@@ -250,22 +246,25 @@ class Status {
           }
         }
       }
+      else {
+        rocks.remove(key);
+      }
     }
   }
-  
-    
+
+
   void initialize() {
     for(num px = 0; px < Config.cols; ++px) {
       for(num py = 0; py < Config.rows + 1; ++py) {
         drawSpace(px, py);
       }
     }
- 
+
     for(num i = 0; i < 3; ++i) {
       CanvasElement canvas = new Element.tag("canvas");
       canvas.width  = Config.cellWidth;
       canvas.height = Config.cellHeight;
-      
+
       CanvasRenderingContext2D rctx = canvas.getContext("2d");
       rctx.drawImage(images["rock${i+1}"], 0, 0);
       rctx.globalCompositeOperation = "source-in";
@@ -275,16 +274,15 @@ class Status {
     }
 
     currentTop = Config.height + Config.cellHeight;
-    
+
     x =  Config.width >> 2;
     y = (Config.height * 3 / 4).toInt();
     frameCount = 0;
-    rockCount  = 0;
     score      = 0;
-    
+
     bullets    = new Map<String, Bullet>();
     rocks      = new Map<String, Rock>();
-    
+
     scoreElement.innerHTML = "000000000";
 
     state = "gaming";
@@ -301,28 +299,28 @@ class Status {
     Element scoreboard = document.query(scoreboardName);
     scoreboard.style.width = "${Config.width}px";
     scoreElement = scoreboard;
-    
+
     CanvasElement stage = document.query(stageName);
     stage.width  = Config.width;
     stage.height = Config.height;
     ctx = stage.getContext("2d");
-    
+
     CanvasElement bg = new Element.tag("canvas");
     bg.width  = Config.width;
     bg.height = Config.height + Config.cellHeight;
     bgCtx = bg.getContext("2d");
-    
+
     for(num i = 0; i < 10; ++i) {
       imageName.add("space${i + 1}");
       imageName.add("bomb${i + 1}");
     }
-    
+
     // preload
     num loadedCount = 0;
     void checkLoad(Event e) {
       if(++loadedCount == imageName.length) {
         initialize();
-      }  
+      }
     }
     for(final String name in imageName) {
       ImageElement image = new Element.tag("img");
@@ -330,7 +328,7 @@ class Status {
       image.src = "shooting/img/${name}.png";
       images[name]  = image;
     }
-    
+
     Point getPoint(UIEvent e) {
       num px;
       num py;
@@ -343,33 +341,33 @@ class Status {
         px = e.pageX;
         py = e.pageY;
       }
-      return new Point(px, py);      
+      return new Point(px, py);
     }
-    
+
     void touchStart(UIEvent e) {
       e.preventDefault();
       final Point p = getPoint(e);
-      
+
       lastX = p.x;
       lastY = p.y;
-      
+
       if(state == "gameover") {
         initialize();
       }
     }
     document.body.on.mouseDown.add(touchStart);
     document.body.on.touchStart.add(touchStart);
-    
+
     void touchMove(UIEvent e) {
       final Point p = getPoint(e);
 
       if(state == "gaming" && lastX != null) {
         x += ((p.x - lastX) * 2.5).toInt();
         y += ((p.y - lastY) * 3).toInt();
-  
+
         x = Math.max(x, 0);
         x = Math.min(x, Config.width);
-        
+
         y = Math.max(y, 0);
         y = Math.min(y, Config.height);
       }
