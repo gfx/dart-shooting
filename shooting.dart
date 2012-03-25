@@ -255,7 +255,6 @@ class Status {
   
     
   void initialize() {
-    print("game start!");
     for(num px = 0; px < Config.cols; ++px) {
       for(num py = 0; py < Config.rows + 1; ++py) {
         drawSpace(px, py);
@@ -384,8 +383,6 @@ class Status {
 }
 
 void main() {
-  window.on.load.add((Event event) {
-    Status status = new Status("#scoreboard", "#stage");
-    status.tick();
-  });
+  Status status = new Status("#scoreboard", "#stage");
+  status.tick();
 }

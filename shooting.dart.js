@@ -303,18 +303,6 @@ Math.max = function(a, b) {
   return (a >= b) ? a : b;
 }
 // ********** Code for top level **************
-function print$(obj) {
-  return _print(obj);
-}
-function _print(obj) {
-  if (typeof console == 'object') {
-    if (obj) obj = obj.toString();
-    console.log(obj);
-  } else if (typeof write === 'function') {
-    write(obj);
-    write('\n');
-  }
-}
 function _toDartException(e) {
   function attachStack(dartEx) {
     // TODO(jmesserly): setting the stack property is not a long term solution.
@@ -2860,31 +2848,8 @@ $dynamic("_addEventListener").WebSocket = function(type, listener, useCapture) {
 }
 // ********** Code for _WheelEventImpl **************
 // ********** Code for _WindowImpl **************
-$dynamic("get$on").DOMWindow = function() {
-  return new _WindowEventsImpl(this);
-}
 $dynamic("_addEventListener").DOMWindow = function(type, listener, useCapture) {
   this.addEventListener(type, listener, useCapture);
-}
-// ********** Code for _WindowEventsImpl **************
-$inherits(_WindowEventsImpl, _EventsImpl);
-function _WindowEventsImpl(_ptr) {
-  _EventsImpl.call(this, _ptr);
-}
-_WindowEventsImpl.prototype.get$load = function() {
-  return this._get("load");
-}
-_WindowEventsImpl.prototype.get$mouseDown = function() {
-  return this._get("mousedown");
-}
-_WindowEventsImpl.prototype.get$mouseMove = function() {
-  return this._get("mousemove");
-}
-_WindowEventsImpl.prototype.get$touchMove = function() {
-  return this._get("touchmove");
-}
-_WindowEventsImpl.prototype.get$touchStart = function() {
-  return this._get("touchstart");
 }
 // ********** Code for _WorkerImpl **************
 // ********** Code for _WorkerLocationImpl **************
@@ -3055,13 +3020,6 @@ var _cachedBrowserPrefix;
 var _pendingRequests;
 var _pendingMeasurementFrameCallbacks;
 //  ********** Library shooting **************
-// ********** Code for Random **************
-function Random() {}
-Random.next = function() {
-  $globals.Random_x = $globals.Random_x * (25214903917) + (11);
-  $globals.Random_x = $mod$($globals.Random_x, (281474976710655));
-  return $globals.Random_x * (3.552713678800501e-15);
-}
 // ********** Code for Config **************
 function Config() {}
 // ********** Code for MovingObject **************
@@ -3299,7 +3257,6 @@ Status.prototype.tick = function() {
   }
 }
 Status.prototype.initialize = function() {
-  print$("game start!");
   for (var px = (0);
    px < (10); ++px) {
     for (var py = (0);
@@ -3336,14 +3293,11 @@ Status.prototype.initialize = function() {
 }
 // ********** Code for top level **************
 function random() {
-  return Random.next();
+  return Math.random();
 }
 function main() {
-  get$$window().get$on().get$load().add((function (event) {
-    var status = new Status("#scoreboard", "#stage");
-    status.tick();
-  })
-  , false);
+  var status = new Status("#scoreboard", "#stage");
+  status.tick();
 }
 // 202 dynamic types.
 // 220 types
@@ -3400,7 +3354,6 @@ function $dynamicSetMetadata(inputTable) {
 })();
 //  ********** Globals **************
 function $static_init(){
-  $globals.Random_x = (0);
 }
 var const$0000 = Object.create(_DeletedKeySentinel.prototype, {});
 var const$0001 = Object.create(NoMoreElementsException.prototype, {});

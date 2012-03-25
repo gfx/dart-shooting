@@ -1,12 +1,10 @@
 <html>
   <head>
-    <title>Shooting</title>
-    <meta name="viewport" content="width=320,user-scalable=no"></script>
+    <title>Shooting Game in Dart</title>
+    <meta name="viewport" content="width=device-width,user-scalable=no" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    
-    <script type="application/dart" src="Shooting.dart"></script>
-    <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
+
     <style>
 	    #scoreboard {
 	    	position: absolute;
@@ -18,8 +16,11 @@
 	    }
     </style>
   </head>
-  <body style="margin:0;position:relative">
+  <body style="margin:0; position:relative;">
   <canvas id="stage"></canvas>
   <div id="scoreboard">000000000</div>
+
+  <script type="application/dart" src="shooting.dart"></script>
+  <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
   </body>
 </<html>
