@@ -12,7 +12,7 @@ This will work on modern browsers including those on iOS and Android.
 
 #THANKS TO
 
-THanks to Kihira, Takuo for the original JavaScript version.
+Thanks to Kihira, Takuo for the original JavaScript version.
 
 http://nmi.jp/archives/386
 
