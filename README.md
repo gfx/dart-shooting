@@ -1,15 +1,14 @@
 #NAME
 
-Dart Shooting
+Dart Shooting Game
 
 #RUN
 
-And then open shooting.html with your browser.
+Open shooting.html with your browser.
 
 #ENVIRONMENT
 
-This will work on modern browsers including smartphones'.
-
+This will work on modern browsers including those on iOS and Android.
 
 #THANKS TO
 
