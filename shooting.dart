@@ -330,7 +330,7 @@ class Status {
     for(final String name in imageName) {
       ImageElement image = new Element.tag("img");
       image.on.load.add(checkLoad);
-      image.src = "shooting/img/${name}.png";
+      image.src = "img/${name}.png";
       images[name]  = image;
     }
 

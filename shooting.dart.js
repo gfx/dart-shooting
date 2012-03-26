@@ -3081,7 +3081,7 @@ function Status(scoreboardName, stageName) {
     var name = $$i.next();
     var image = _ElementFactoryProvider.Element$tag$factory("img");
     image.get$on().get$load().add$1(checkLoad);
-    image.src = ("shooting/img/" + name + ".png");
+    image.src = ("img/" + name + ".png");
     this.images.$setindex(name, image);
   }
   function getPoint(e) {

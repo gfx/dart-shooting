@@ -4,25 +4,25 @@ Dart Shooting
 
 #RUN
 
-This software requires image files, which the distribution doesn't include.
-
-To run this game, please download shooting.zip from
-http://nmi.jp/archives/386, and extract its contents
-to`dart-shooting/shooting/` so that shootng.dart can refer images such as
-`dart-shooting/shooting/img/my.png`.
-
 And then open shooting.html with your browser.
 
 #ENVIRONMENT
 
 This will work on modern browsers including smartphones'.
 
-#SEE ALSO
 
-- http://nmi.jp/archives/386
+#THANKS TO
+
+THanks to Kihira, Takuo for the original JavaScript version.
+
+http://nmi.jp/archives/386
+
+Tahnks to ハムコロ様 (HamCorossam) for the material image files.
+
+http://homepage2.nifty.com/hamcorossam/
 
 #AUTHOR
 
 Original JavaScript version is written by Kihira, Takuo (tkihira).
 
-This dart version is written by Fuji, Goro (gfx).
+This Dart version is written by Fuji, Goro (gfx).
