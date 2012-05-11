@@ -2,9 +2,9 @@
 
 Dart Shooting Game
 
-#RUN
+#DEMO
 
-Open shooting.html with your browser.
+http://gfx.github.com/dart-shooting
 
 #ENVIRONMENT
 
