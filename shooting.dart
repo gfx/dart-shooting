@@ -18,7 +18,7 @@ num random() => Math.random();
 
 class Config {
   static final num cols         = 10;
-  static final num rows         = 10;
+  static final num rows         = 15;
   static final num cellWidth    = 32;
   static final num cellHeight   = 32;
   static final num bulletWidth  = 4;
