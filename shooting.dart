@@ -1,33 +1,26 @@
 // originated from http://nmi.jp/archives/386
 // Copyright 2012, @tkihira. All rights reserved.
 
-#import('dart:html');
+import 'dart:html';
+import 'dart:math';
+import 'dart:async';
 
-/*
-class Random { // poor man's drand48
-  static num x = 0;
-  static num next() {
-    x = x * 0x5DEECE66D + 0xB;
-    x %= 0xFFFFFFFFFFFF;
-    return x * (1.0/(0xFFFFFFFFFFFF+1));
-  }
-}
-num random() => Random.next();
-// */
-num random() => Math.random();
+final randomGenerator = new Random();
+
+num random() => randomGenerator.nextDouble();
 
 class Config {
-  static final num cols         = 10;
-  static final num rows         = 15;
-  static final num cellWidth    = 32;
-  static final num cellHeight   = 32;
-  static final num bulletWidth  = 4;
-  static final num bulletHeight = 4;
-  static final num bulletSpeed  = 20;
-  static final num reloadCount  = 3;
+  static const int cols         = 10;
+  static const int rows         = 15;
+  static const int cellWidth    = 32;
+  static const int cellHeight   = 32;
+  static const int bulletWidth  = 4;
+  static const int bulletHeight = 4;
+  static const int bulletSpeed  = 20;
+  static const int reloadCount  = 3;
 
-  static final num width  = cols * cellWidth;
-  static final num height = rows * cellHeight;
+  static const int width  = cols * cellWidth;
+  static const int height = rows * cellHeight;
 }
 
 class MovingObject {
@@ -63,7 +56,7 @@ class Rock extends MovingObject {
 
 class Status {
   List<String> imageName;
-  Map<String, Element> images;
+  Map<String, CanvasImageSource> images;
 
   String state = "loading";
 
@@ -84,13 +77,12 @@ class Status {
   Map<String, Rock> rocks;
 
   num score;
-  Element scoreElement;
+  HtmlElement scoreElement;
 
   void drawBackground() {
     num bottom = Config.height + Config.cellHeight - currentTop;
     if(bottom > 0) {
-      ctx.drawImage(bgCtx.canvas, 0, currentTop,
-        Config.width, bottom, 0, 0, Config.width, bottom);
+      ctx.drawImageScaledFromSource(bgCtx.canvas, 0, currentTop, Config.width, bottom, 0, 0, Config.width, bottom);
     }
     if((Config.height - bottom).abs() > 0) {
       ctx.drawImage(bgCtx.canvas, 0, bottom);
@@ -99,7 +91,7 @@ class Status {
 
   void draw() {
     drawBackground();
-    Element image;
+    CanvasImageSource image;
     if(state == "gaming") {
       image = images["my"];
     }
@@ -114,17 +106,13 @@ class Status {
     }
 
     assert(image != null);
-    ctx.drawImage(image,
-      x - (Config.cellWidth  >> 1),
-      y - (Config.cellHeight >> 1));
+    ctx.drawImage(image, x - (Config.cellWidth  >> 1), y - (Config.cellHeight >> 1));
   }
 
   void drawSpace(num px, num py) {
-    Element image = images["space${(random() * 10 + 1).toInt()}"];
+    final image = images["space${(random() * 10 + 1).toInt()}"];
     assert(image != null);
-    bgCtx.drawImage(image,
-      px * Config.cellWidth,
-      py * Config.cellHeight);
+    bgCtx.drawImage(image, px * Config.cellWidth, py * Config.cellHeight);
   }
 
   Bullet createBullet(num dx, num dy) {
@@ -142,24 +130,26 @@ class Status {
     num fx = random() * Config.width;
     num fy = (level >= 4) ? (random() * 2) * Config.height : 0;
 
-    num r  = Math.atan2(py - fy, px - fx);
-    num d  = Math.max(random() * (5.5 + level) + 1.5, 10);
+    num r  = atan2(py - fy, px - fx);
+    num d  = max(random() * (5.5 + level) + 1.5, 10);
 
     num hp = (random() * random() * ((5 + level / 4).toInt())).toInt() | 1;
 
     return new Rock(
       fx,
       fy,
-      Math.cos(r) * d,
-      Math.sin(r) * d,
+      cos(r) * d,
+      sin(r) * d,
       hp,
       hp * hp * 100,
       "rock${(random() * 3 + 1).toInt()}"
     );
   }
 
+  final tickDuration = new Duration(milliseconds: (1000 / 30).toInt());
+
   void tick() {
-    window.setTimeout(() => tick(), (1000 / 30).toInt());
+    new Timer(tickDuration, tick);
 
     if(state == "loading") {
       return;
@@ -190,26 +180,26 @@ class Status {
       rocks["${frameCount}r"] = createRock();
     }
 
-    for(String key in bullets.getKeys()) {
-      Bullet bullet = bullets[key];
+    for(String key in bullets.keys.toList()) {
+      final bullet = bullets[key];
 
       if(bullet.update()) {
         ctx.drawImage(images["bullet"],
           bullet.x - (Config.bulletWidth  >> 1),
           bullet.y - (Config.bulletHeight >> 1));
 
-        for(Rock rock in rocks.getValues()) {
+        for(Rock rock in rocks.values) {
           if(    (bullet.x - rock.x).abs() < (Config.cellWidth >> 1)
               && (bullet.y - rock.y).abs() < (Config.cellHeight >> 1)) {
             if(rock.hp > 0) {
               bullets.remove(key);
               if(--rock.hp == 0) {
-                score = Math.min(score + rock.score, 999999999);
+                score = min(score + rock.score, 999999999);
 
                 String fillz = "000000000".substring(
                   0, 9 - score.toString().length
                 );
-                scoreElement.innerHTML = "$fillz$score";
+                scoreElement.innerHtml = "$fillz$score";
                 rock.dx = rock.dy = 0;
                 rock.state = "bomb1";
               }
@@ -225,15 +215,15 @@ class Status {
       }
     } // end for each bullets
 
-    for(String key in rocks.getKeys()) {
-      Rock rock = rocks[key];
+    for(String key in rocks.keys.toList()) {
+      final rock = rocks[key];
       if(rock.update()) {
         ctx.drawImage(images[rock.state],
           rock.x - (Config.cellWidth >> 1),
           rock.y - (Config.cellHeight >> 1));
 
         if(rock.hp == 0) {
-          num next = Math.parseInt(rock.state.substring(4)) + 1;
+          final next = int.parse(rock.state.substring(4)) + 1;
           if(next > 10) {
             rocks.remove(key);
           }
@@ -266,7 +256,7 @@ class Status {
     }
 
     for(num i = 0; i < 3; ++i) {
-      CanvasElement canvas = new Element.tag("canvas");
+      final canvas = new CanvasElement();
       canvas.width  = Config.cellWidth;
       canvas.height = Config.cellHeight;
 
@@ -288,10 +278,11 @@ class Status {
     bullets    = new Map<String, Bullet>();
     rocks      = new Map<String, Rock>();
 
-    scoreElement.innerHTML = "000000000";
+    scoreElement.innerHtml = "000000000";
 
     state = "gaming";
-    window.setTimeout( () => window.scrollTo(0, 0), 250 );
+
+    new Timer(new Duration(milliseconds: 250), () => window.scrollTo(0, 0));
   }
 
   Status(String scoreboardName, String stageName) {
@@ -299,18 +290,18 @@ class Status {
     state = "loading";
 
     imageName = <String>["my", "bullet", "rock1", "rock2", "rock3"];
-    images    = new Map<String, Element>();
+    images    = new Map<String, CanvasImageSource>();
 
-    Element scoreboard = document.query(scoreboardName);
+    final scoreboard = document.query(scoreboardName);
     scoreboard.style.width = "${Config.width}px";
     scoreElement = scoreboard;
 
-    CanvasElement stage = document.query(stageName);
+    final stage = document.query(stageName);
     stage.width  = Config.width;
     stage.height = Config.height;
     ctx = stage.getContext("2d");
 
-    CanvasElement bg = new Element.tag("canvas");
+    final bg = new CanvasElement();
     bg.width  = Config.width;
     bg.height = Config.height + Config.cellHeight;
     bgCtx = bg.getContext("2d");
@@ -328,8 +319,8 @@ class Status {
       }
     }
     for(final String name in imageName) {
-      ImageElement image = new Element.tag("img");
-      image.on.load.add(checkLoad);
+      final image = new ImageElement();
+      image.onLoad.listen(checkLoad);
       image.src = "img/${name}.png";
       images[name]  = image;
     }
@@ -339,12 +330,12 @@ class Status {
       num py;
       if(e is TouchEvent) {
         TouchEvent te = e;
-        px = te.touches[0].pageX;
-        py = te.touches[0].pageY;
+        px = te.touches[0].page.x;
+        py = te.touches[0].page.y;
       }
       else {
-        px = e.pageX;
-        py = e.pageY;
+        px = e.page.x;
+        py = e.page.y;
       }
       return new Point(px, py);
     }
@@ -360,8 +351,8 @@ class Status {
         initialize();
       }
     }
-    document.body.on.mouseDown.add(touchStart);
-    document.body.on.touchStart.add(touchStart);
+    document.body.onMouseDown.listen(touchStart);
+    document.body.onTouchStart.listen(touchStart);
 
     void touchMove(UIEvent e) {
       final Point p = getPoint(e);
@@ -370,18 +361,18 @@ class Status {
         x += ((p.x - lastX) * 2.5).toInt();
         y += ((p.y - lastY) * 3).toInt();
 
-        x = Math.max(x, 0);
-        x = Math.min(x, Config.width);
+        x = max(x, 0);
+        x = min(x, Config.width);
 
-        y = Math.max(y, 0);
-        y = Math.min(y, Config.height);
+        y = max(y, 0);
+        y = min(y, Config.height);
       }
 
       lastX = p.x;
       lastY = p.y;
     }
-    document.body.on.mouseMove.add(touchMove);
-    document.body.on.touchMove.add(touchMove);
+    document.body.onMouseMove.listen(touchMove);
+    document.body.onTouchMove.listen(touchMove);
   }
 }
 
